@@ -65,5 +65,23 @@ window.addEventListener('scroll', () => {
 
     textA_content_DOM.style.transform = `scale(${scrollYPercentage})`;
     textB_content_DOM.style.transform = `scale(${1 - scrollYPercentage})`;
+
+    // Text A
+    if (textA_DOM.clientWidth >= 300) {
+        textA_content_DOM.style.opacity = scrollYPercentage;
+    }
+    else if (textA_DOM.clientWidth <= 200) {
+        textA_content_DOM.style.opacity = 0;
+    }
+    else textA_content_DOM.style.opacity = scrollYPercentage / 2;
+
+    // Text B
+    if (textB_DOM.clientWidth >= 300) {
+        textB_content_DOM.style.opacity = 1 - scrollYPercentage;
+    }
+    else if (textB_DOM.clientWidth <= 200) {
+        textB_content_DOM.style.opacity = 0;
+    }
+    else textB_content_DOM.style.opacity = (1 - scrollYPercentage) / 2;
 });
 
