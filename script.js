@@ -36,52 +36,70 @@ window.addEventListener('resize', () => {
 
 window.addEventListener('scroll', () => {
 
-    const maxScrollY = document.body.scrollHeight - window.innerHeight;
-    const scrollYPercentage = window.scrollY / maxScrollY;
+    /** SCROLL Y */
 
-    /* BACKGROUND */
+    const maxScrollY = document.body.scrollHeight - window.innerHeight,
+          scrollYPercentage = window.scrollY / maxScrollY;
 
-    const opacityValue = (1 - scrollYPercentage * 2) / 2;
+    /**
+     * Referring to 'scrollYPercentage'.
+     * Create the 0.8 as minimum and 0.9 as maximum (the rate speeding up).
+     */
+    let middleScrollYPercentage;
 
-    if (window.scrollY < maxScrollY / 2) {
+    if (scrollYPercentage < 0.8) {
+        middleScrollYPercentage = 0;
+    }
+    else if (scrollYPercentage >= 0.8 && scrollYPercentage < 0.9) {
+        middleScrollYPercentage = (scrollYPercentage - 0.8) * 10;
+    }
+    else middleScrollYPercentage = 1;
+
+    /** BACKGROUND */
+
+    const getUnevenBgOpc = (fragment, fragment_prev) =>
+        (scrollYPercentage - fragment_prev) * 100 / (fragment * 100 * 2);
+
+    if (window.scrollY < maxScrollY * 0.85) {
         headerBackground_DOM.style.visibility = 'visible';
         footerBackground_DOM.style.visibility = 'hidden';
-        headerBackground_DOM.style.opacity = `${opacityValue}`;
+        headerBackground_DOM.style.opacity = `${0.5 - getUnevenBgOpc(0.85, 0)}`;
     }
     else {
         headerBackground_DOM.style.visibility = 'hidden';
         footerBackground_DOM.style.visibility = 'visible';
-        footerBackground_DOM.style.opacity = `${Math.abs(opacityValue)}`;
+        footerBackground_DOM.style.opacity = `${getUnevenBgOpc(0.15, 0.85)}`;
     }
 
-    /** TITLE */
+    /** TEXT */
 
     scrollY_proPicWd = (
-        scrollYPercentage * (window.innerWidth - profilePicture_DOM.clientWidth)
+        middleScrollYPercentage *
+        (window.innerWidth - profilePicture_DOM.clientWidth)
     );
 
-    textA_DOM.style.width = (scrollY_proPicWd) + 'px';
+    textA_DOM.style.width = scrollY_proPicWd + 'px';
     textB_DOM.style.width = get_textB_width();
 
-    textA_content_DOM.style.transform = `scale(${scrollYPercentage})`;
-    textB_content_DOM.style.transform = `scale(${1 - scrollYPercentage})`;
+    textA_content_DOM.style.transform = `scale(${middleScrollYPercentage})`;
+    textB_content_DOM.style.transform = `scale(${1 - middleScrollYPercentage})`;
 
     // Text A
     if (textA_DOM.clientWidth >= 300) {
-        textA_content_DOM.style.opacity = scrollYPercentage;
+        textA_content_DOM.style.opacity = middleScrollYPercentage;
     }
     else if (textA_DOM.clientWidth <= 200) {
         textA_content_DOM.style.opacity = 0;
     }
-    else textA_content_DOM.style.opacity = scrollYPercentage / 2;
+    else textA_content_DOM.style.opacity = middleScrollYPercentage / 2;
 
     // Text B
     if (textB_DOM.clientWidth >= 300) {
-        textB_content_DOM.style.opacity = 1 - scrollYPercentage;
+        textB_content_DOM.style.opacity = 1 - middleScrollYPercentage;
     }
     else if (textB_DOM.clientWidth <= 200) {
         textB_content_DOM.style.opacity = 0;
     }
-    else textB_content_DOM.style.opacity = (1 - scrollYPercentage) / 2;
+    else textB_content_DOM.style.opacity = (1 - middleScrollYPercentage) / 2;
 });
 
