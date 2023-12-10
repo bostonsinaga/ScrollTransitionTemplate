@@ -5,7 +5,7 @@
 }
 
 .CONTAINER {
-    height: 5000px;
+    height: 1000px;
     background-color: #000;
 }
 
@@ -51,6 +51,7 @@
 
 .text .content {
     padding: 100px;
+    position: absolute;
     display: flex;
     flex-direction: column;
 }
@@ -87,12 +88,14 @@
     background-color: #ffffff44;
 }
 
-.text-a {
-    width: 0;
-}
-
-.text-a .content {
-    transform: scale(0);
-    opacity: 0;
+@media screen and (orientation:landscape) {
+    .text-0 {
+        width: 0;
+    }
+    
+    .text-0 .content {
+        transform: scale(0);
+        opacity: 0;
+    }
 }
 
