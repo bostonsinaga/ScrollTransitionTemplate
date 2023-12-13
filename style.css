@@ -9,6 +9,11 @@
     background-color: #000;
 }
 
+/* The opacity is set in javascript */
+.CONTAINER * {
+    opacity: 0;
+}
+
 .header-background,
 .footer-background {
     width: 100vw;
@@ -20,12 +25,10 @@
 
 .header-background {
     background-image: url('./img/office.jpg');
-    opacity: 0.5;
 }
 
 .footer-background {
     background-image: url('./img/city.jpg');
-    opacity: 0;
 }
 
 .tridiv {
@@ -93,7 +96,6 @@
     
     .text-0 .content {
         transform: scale(0);
-        opacity: 0;
     }
 }
 
