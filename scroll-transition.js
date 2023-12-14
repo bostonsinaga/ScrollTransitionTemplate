@@ -28,6 +28,7 @@ class Division {
         this.styleFlags = styleFlags;
         this.domsInterval = domsInterval;
         this.startFromPeak = startFromPeak;
+        this.isDivision = true;
     }
 
     /**
@@ -132,12 +133,15 @@ class ScrollTransition {
     };
 
     /**
-     * @param {object[]} doms 
-     * @param {number} globalFragment 
+     * Add multiple DOMs whose styles will be changed at vertical scroll event.
+     * 
+     * @param {object[]} doms - html elements
+     * @param {number} globalFragment - range: 0 < value <= 1
      * @param {number[]} localFragments 
      * @param {number} maxValue 
-     * @param {number[]} stylesToChange - Can be multiple styles at once (use 'Division STYLE FLAGS')
+     * @param {number[]} stylesToChange - can be multiple styles at once (use 'Division STYLE FLAGS')
      * @param {boolean} startFromPeak 
+     * @returns {Division} - keep this to able to reduce 'this.doms' (use this as 'drop' parameter)
      */
     add(doms = [],
         globalFragment = 1,
@@ -161,6 +165,36 @@ class ScrollTransition {
 
         this.divisions.push(newDivision);
         this.doms = this.doms.concat(doms);
+        return newDivision;
+    }
+
+    /**
+     * Drop multiple 'doms' from 'this.doms'.
+     * This following the 'division.domsInterval'.
+     * The given 'division' removed as well from 'this.divisions'.
+     * 
+     * @param {Division} division 
+     */
+    drop(division) {
+        if (division.isDivision) {
+
+            // reduce doms
+            this.doms = this.doms.slice(0, division.domsInterval[0]).concat(
+                this.doms.slice(division.domsInterval[1] + 1)
+            );
+
+            // reduce divisions
+            for (let i = 0; i < this.divisions.length; i++) {
+                if (this.divisions[i] === division) {
+
+                    this.divisions[i] = this.divisions[i].slice(0, i).concat(
+                        this.divisions[i].slice(i + 1)
+                    );
+
+                    return;
+                }
+            }
+        }
     }
 
     //________|
