@@ -137,6 +137,7 @@ class ScrollTransition {
 
     /**
      * Add multiple DOMs whose styles will be changed at vertical scroll event.
+     * Use this tool separately on groups with similar style changes.
      * 
      * @param {object[]} doms - html elements
      * @param {number} globalFragment - range: 0 < value <= 1
