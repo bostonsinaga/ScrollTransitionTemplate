@@ -107,13 +107,16 @@ class Division {
     static get SCALE()   { return 2; }
 };
 
-/**
- * The Main Class
- * This goes along with the vertical scroll of the window.
- */
+/** The Main Class */
 class ScrollTransition {
-
     /**
+     * This goes along with the vertical scroll of the window.
+     * You may need to initialize elements style in CSS.
+     * But this follows the 'startFromPeak' value of the 'add' method.
+     * For example, if it 'true' you need to set the first relative
+     * element's style to maximum and vice versa.
+     * 
+     * Note:
      * Recommended to add more doms and their
      * configuration with 'add' method.
      * It's better to leave this by default.
@@ -203,8 +206,8 @@ class ScrollTransition {
 
     // the 'doms' must already added before call this function
     startEvent() {
-        updateOrientation();
-        window.addEventListener('resize', updateOrientation);
+        this.updateOrientation();
+        window.addEventListener('resize', this.updateOrientation);
 
         // scroll y event
         window.addEventListener('scroll', () => {
@@ -235,16 +238,16 @@ class ScrollTransition {
                     for (const styFg of div.styleFlags) {
                         switch (styFg) {
                             case Division.OPACITY: {
-                                this.doms[i].style.opacity = getPeakValley(peakValleyParam);
+                                this.doms[i].style.opacity = this.getPeakValley(peakValleyParam);
                             break}
                             case Division.WIDTH: {
-                                this.doms[i].style.width = getPeakValley(peakValleyParam);
+                                this.doms[i].style.width = this.getPeakValley(peakValleyParam);
                             break}
                             case Division.HEIGHT: {
-                                this.doms[i].style.height = getPeakValley(peakValleyParam);
+                                this.doms[i].style.height = this.getPeakValley(peakValleyParam);
                             break}
                             case Division.SCALE: {
-                                this.doms[i].style.scale = getPeakValley(peakValleyParam);
+                                this.doms[i].style.scale = this.getPeakValley(peakValleyParam);
                             break}
                         }
                     }
@@ -348,4 +351,6 @@ class ScrollTransition {
         return product;
     }
 };
+
+export {Division, ScrollTransition};
 
