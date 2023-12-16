@@ -101,10 +101,11 @@ class Division {
     // STYLE FLAGS |
     //_____________|
 
-    static get OPACITY() { return 0; }
-    static get WIDTH()   { return 1; }
-    static get HEIGHT()  { return 2; }
-    static get SCALE()   { return 2; }
+    static get WIDTH()     { return 0; }
+    static get HEIGHT()    { return 1; }
+    static get SCALE()     { return 2; }
+    static get OPACITY()   { return 3; }
+    static get FONT_SIZE() { return 4; }
 };
 
 /** The Main Class */
@@ -121,7 +122,7 @@ class ScrollTransition {
      * configuration with 'add' method.
      * It's better to leave this by default.
      * 
-     * @param {number[]} doms 
+     * @param {object[]} doms 
      * @param {Division[]} divisions 
      * @param {boolean} isLandscape 
      */
@@ -137,38 +138,64 @@ class ScrollTransition {
 
     /**
      * Add multiple DOMs whose styles will be changed at vertical scroll event.
-     * Use this tool separately on groups with similar style changes.
+     * Use this separately on groups with similar style changes.
      * 
-     * @param {object[]} doms - html elements
-     * @param {number} globalFragment - range: 0 < value <= 1
-     * @param {number[]} localFragments 
-     * @param {number} maxValue 
-     * @param {number[]} stylesToChange - can be multiple styles at once (use 'Division STYLE FLAGS')
-     * @param {boolean} startFromPeak 
+     * @param {object} param 
+     * @param {object[]} param.doms - html elements
+     * @param {number} param.globalFragment - range: 0 < value <= 1
+     * @param {number[]} param.localFragments 
+     * @param {number} param.maxValue 
+     * @param {number[]} param.stylesToChange - can be multiple styles at once (use 'Division STYLE FLAGS')
+     * @param {boolean} param.startFromPeak 
      * @returns {Division} - keep this to able to reduce 'this.doms' (use this as 'drop' parameter)
      */
-    add(doms = [],
-        globalFragment = 1,
-        localFragments = [1],
-        maxValue = 1,
-        stylesToChange = [],
-        startFromPeak = false
-    ) {
-        if (Array.isArray(doms) && doms.length === 0) {
+    add(param) {
+        const isParamUndefined = (val_in) => {
+            if (typeof val_in === 'number' && (val_in < 0 || val_in >= 0)) {
+                return true;
+            }
+            return val_in ? true : false;
+        }
+
+        /** Default Values */
+
+        if (!isParamUndefined(param.doms))
+            param.doms = [];
+
+        if (!isParamUndefined(param.globalFragment))
+            param.globalFragment = 1;
+
+        if (!isParamUndefined(param.localFragments))
+            param.localFragments = [1];
+
+        if (!isParamUndefined(param.maxValue))
+            param.maxValue = 1;
+
+        if (!isParamUndefined(param.stylesToChange))
+            param.stylesToChange = [];
+
+        if (!isParamUndefined(param.startFromPeak))
+            param.startFromPeak = false;
+
+        // 'param.doms' must an array
+        if ((Array.isArray(param.doms) &&
+            param.doms.length === 0) ||
+            !Array.isArray(param.doms)
+        ) {
             return;
         }
 
         const newDivision = new Division(
-            globalFragment,
-            localFragments,
-            maxValue,
-            stylesToChange,
-            [this.doms.length, this.doms.length + doms.length],
-            startFromPeak
+            param.globalFragment,
+            param.localFragments,
+            param.maxValue,
+            param.stylesToChange,
+            [this.doms.length, this.doms.length + param.doms.length],
+            param.startFromPeak
         );
 
         this.divisions.push(newDivision);
-        this.doms = this.doms.concat(doms);
+        this.doms = this.doms.concat(param.doms);
         return newDivision;
     }
 
@@ -238,9 +265,6 @@ class ScrollTransition {
 
                     for (const styFg of div.styleFlags) {
                         switch (styFg) {
-                            case Division.OPACITY: {
-                                this.doms[i].style.opacity = this.getPeakValley(peakValleyParam);
-                            break}
                             case Division.WIDTH: {
                                 this.doms[i].style.width = this.getPeakValley(peakValleyParam);
                             break}
@@ -250,6 +274,15 @@ class ScrollTransition {
                             case Division.SCALE: {
                                 this.doms[i].style.scale = this.getPeakValley(peakValleyParam);
                             break}
+                            case Division.OPACITY: {
+                                this.doms[i].style.opacity = this.getPeakValley(peakValleyParam);
+                            break}
+                            case Division.FONT_SIZE: {
+                                peakValleyParam.returnAsString = false;
+                                this.doms[i].style.fontSize = `${this.getPeakValley(peakValleyParam) * 20}px`;
+                                peakValleyParam.returnAsString = true;
+                            break}
+                            default: {}
                         }
                     }
                 }
@@ -287,10 +320,12 @@ class ScrollTransition {
          * If not this will directly return zero.
          */
 
+        const localFragmentsLength = param.division.localFragments.length;
+
         const getAccumulationFragmentsRadian = (maxIndex) => {
             let accuVal = 0;
 
-            for (let i = 0; i < param.division.localFragments.length; i++) {
+            for (let i = 0; i < localFragmentsLength; i++) {
                 if (i <= maxIndex) {
                     accuVal += getScrollFragment(i) * Math.PI;
                 }
@@ -300,15 +335,18 @@ class ScrollTransition {
             return accuVal;
         };
 
+        const isIndexNotZero = param.index > 0,
+              isIndexTheLast = param.index === localFragmentsLength - 1;
+
         let nextRadian = getAccumulationFragmentsRadian(param.index),
             prevRadian = 0;
 
-        if (param.index > 0) {
+        if (isIndexNotZero) {
             prevRadian = getAccumulationFragmentsRadian(param.index - 1);
         }
 
-        if ((param.index > 0 && scrollRadian <= prevRadian) ||
-            scrollRadian > nextRadian
+        if ((isIndexNotZero && scrollRadian <= prevRadian) ||
+            (!isIndexTheLast && scrollRadian > nextRadian)
         ) {
             if (param.returnAsString) return '0';
             return 0;
@@ -318,7 +356,7 @@ class ScrollTransition {
 
         let product = 0;
 
-        if (param.index > 0) scrollRadian -= prevRadian;
+        if (isIndexNotZero) scrollRadian -= prevRadian;
 
         /**
          * 'fr_dupli' < 1 = the wave length decrease
@@ -340,7 +378,7 @@ class ScrollTransition {
             }
             else product = getSinVal(1);
         }
-        else if (param.index === param.division.localFragments.length - 1) {
+        else if (isIndexTheLast) {
             if (param.division.startFromPeak) {
                 product = getSinVal(2);
             }
