@@ -1,3 +1,5 @@
+import MiniTools from "./mini-tools";
+
 /**
  * Consumed by 'ScrollTransition' class.
  */
@@ -18,9 +20,9 @@ class Division {
         domsInterval = [0, 0],
         startFromPeak = false
     ) {
-        globalFragment = Division.keepInside100Percent(globalFragment);
-        maxValue = Division.keepInside100Percent(maxValue);
-        domsInterval = Division.keepNumberOfArrayMember(domsInterval, 2);
+        globalFragment = MiniTools.keepInside100Percent(globalFragment);
+        maxValue = MiniTools.keepInside100Percent(maxValue);
+        domsInterval = MiniTools.keepNumberOfArrayMember(domsInterval, 2);
 
         this.globalFragment = globalFragment;
         this.localFragments = localFragments;
@@ -29,72 +31,6 @@ class Division {
         this.domsInterval = domsInterval;
         this.startFromPeak = startFromPeak;
         this.isDivision = true;
-    }
-
-    /**
-     * Keep an array to always has
-     * 
-     * 
-     * @param {*} arr 
-     * @param {*} count 
-     * @param {*} defArr 
-     * @param {*} type 
-     * @returns 
-     */
-    static keepNumberOfArrayMember(
-        arr,
-        count,
-        defArr = [0, 0],
-        type = 'number'
-    ) {
-        if (count <= 0) return [];
-
-        if (Array.isArray(arr)) {
-            if (arr.length > count) {
-                return arr.slice(0, count);
-            }
-            else if (arr.length < count) {
-                for (let i = count - 1; i < count; i++) {
-                    switch (type) {
-                        case 'number': {
-                            arr.push(0);
-                        break}
-                        case 'string': {
-                            arr.push('');
-                        break}
-                        case 'boolean': {
-                            arr.push(false);
-                        break}
-                        case 'object': {
-                            arr.push(null);
-                        break}
-                        default: {
-                            arr.push(undefined);
-                        }
-                    }
-                }
-            }
-            else return arr;
-        }
-        
-        return defArr;
-    }
-
-    /**
-     * Keep value between 0 or 1 (by default prevent from zero).
-     * 
-     * @param {number} value 
-     * @param {boolean} preventZero 
-     * @returns {number} 0 to 1
-     */
-    static keepInside100Percent(value, preventZero = true) {
-        
-        if (value <= 0) {
-            if (preventZero) value = 0.0001;
-            else value = 0;
-        }
-        else if (value > 1) value = 1;
-        return value;
     }
 
     //_____________|
