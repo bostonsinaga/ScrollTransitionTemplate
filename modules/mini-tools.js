@@ -77,6 +77,30 @@ export default class MiniTools {
     }
 
     /**
+     * Check if 'val_in' is a letter.
+     * The 'val_in' is generally a character.
+     * 
+     * @param {*} val_in 
+     * @returns {boolean}
+     */
+    static isLetter(val_in) {
+        const alphabets = [
+            'a','b','c','d','e','f','g','h','i','j','k','l','m','n',
+            'o','p','q','r','s','t','u','v','w','x','y','z',
+            'A','B','C','D','E','F','G','H','I','J','K','L','M','N',
+            'O','P','Q','R','S','T','U','V','W','X','Y','Z'
+        ];
+
+        for (const alp of alphabets) {
+            if (val_in === alp) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * Get number that contained in a string.
      * Like unit value.
      * 
