@@ -173,18 +173,26 @@ class ScrollTransition {
         this.updateOrientation();
         window.addEventListener('resize', this.updateOrientation);
 
+        const peakValleyParam = {};
+
+        const changePixelStyle = (dom, styleKey) => {
+            dom.style[styleKey] = (
+                this.getPeakValley(peakValleyParam)
+                * MiniTools.filterNumberFromString(dom.style[styleKey])
+            ).toString() + 'px';
+        };
+
+        const changePercentageStyle = (dom, styleKey) => {
+            dom.style[styleKey] = this.getPeakValley(peakValleyParam);
+        };
+
         // scroll y event
         window.addEventListener('scroll', () => {
 
             const maxScrollY = document.body.scrollHeight - window.innerHeight,
                   scrollYPercentage = window.scrollY / maxScrollY;
 
-            const peakValleyParam = {
-                scrollPercentage: scrollYPercentage,
-                division: new Division(),
-                index: 0,
-                returnAsString: true
-            };
+            peakValleyParam.scrollPercentage = scrollYPercentage;
 
             const getIndexInput = (firstIntervalValue, i) => {
                 if (firstIntervalValue !== 0) {
@@ -202,21 +210,19 @@ class ScrollTransition {
                     for (const styFg of div.styleFlags) {
                         switch (styFg) {
                             case Division.WIDTH: {
-                                this.doms[i].style.width = this.getPeakValley(peakValleyParam);
+                                changePixelStyle(this.doms[i], 'width');
                             break}
                             case Division.HEIGHT: {
-                                this.doms[i].style.height = this.getPeakValley(peakValleyParam);
+                                changePixelStyle(this.doms[i], 'height');
                             break}
                             case Division.SCALE: {
-                                this.doms[i].style.scale = this.getPeakValley(peakValleyParam);
+                                changePercentageStyle(this.doms[i], 'scale');
                             break}
                             case Division.OPACITY: {
-                                this.doms[i].style.opacity = this.getPeakValley(peakValleyParam);
+                                changePercentageStyle(this.doms[i], 'opacity');
                             break}
                             case Division.FONT_SIZE: {
-                                peakValleyParam.returnAsString = false;
-                                this.doms[i].style.fontSize = `${this.getPeakValley(peakValleyParam) * 20}px`;
-                                peakValleyParam.returnAsString = true;
+                                changePixelStyle(this.doms[i], 'fontSize');
                             break}
                             default: {}
                         }
@@ -238,7 +244,6 @@ class ScrollTransition {
      * @param {number} param.scrollPercentage 
      * @param {Division} param.division 
      * @param {number} param.index 
-     * @param {boolean} param.returnAsString 
      */
     getPeakValley(param) {
 
@@ -284,7 +289,6 @@ class ScrollTransition {
         if ((isIndexNotZero && scrollRadian <= prevRadian) ||
             (!isIndexTheLast && scrollRadian > nextRadian)
         ) {
-            if (param.returnAsString) return '0';
             return 0;
         }
 
@@ -322,7 +326,6 @@ class ScrollTransition {
         }
         else product = getSinVal(1);
 
-        if (param.returnAsString) return `${product}`;
         return product;
     }
 };
