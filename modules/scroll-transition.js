@@ -175,15 +175,41 @@ class ScrollTransition {
 
         const peakValleyParam = {};
 
-        const changePixelStyle = (dom, styleKey) => {
+        const getValueUnit = (val_in) => {
+            let unit = '';
+
+            if (typeof val_in === 'string') {
+                for (let i = val_in.length - 1; i >= 0; i--) {
+                    if (MiniTools.isLetter(val_in[i])) {
+                        unit += val_in[i];
+                    }
+                    else return unit.toLowerCase();
+                }
+                return unit.toLowerCase();
+            }
+            return '';
+        }
+
+        const changePixelStyle = (dom, styleKey, cssPropertyName) => {
+            if (!cssPropertyName) cssPropertyName = styleKey;
+
+            const styleValue = window.getComputedStyle(dom).getPropertyValue(cssPropertyName);
+            
             dom.style[styleKey] = (
                 this.getPeakValley(peakValleyParam)
-                * MiniTools.filterNumberFromString(dom.style[styleKey])
-            ).toString() + 'px';
+                * MiniTools.filterNumberFromString(styleValue)
+            ).toString() + getValueUnit(styleValue);
         };
 
         const changePercentageStyle = (dom, styleKey) => {
             dom.style[styleKey] = this.getPeakValley(peakValleyParam);
+        };
+
+        const getIndexInput = (firstIntervalValue, i) => {
+            if (firstIntervalValue !== 0) {
+                return i - firstIntervalValue + 1;
+            }
+            return i;
         };
 
         // scroll y event
@@ -193,13 +219,6 @@ class ScrollTransition {
                   scrollYPercentage = window.scrollY / maxScrollY;
 
             peakValleyParam.scrollPercentage = scrollYPercentage;
-
-            const getIndexInput = (firstIntervalValue, i) => {
-                if (firstIntervalValue !== 0) {
-                    return i - firstIntervalValue + 1;
-                }
-                return i;
-            };
 
             for (const div of this.divisions) {
                 peakValleyParam.division = div;
@@ -222,7 +241,7 @@ class ScrollTransition {
                                 changePercentageStyle(this.doms[i], 'opacity');
                             break}
                             case Division.FONT_SIZE: {
-                                changePixelStyle(this.doms[i], 'fontSize');
+                                changePixelStyle(this.doms[i], 'fontSize', 'font-size');
                             break}
                             default: {}
                         }
