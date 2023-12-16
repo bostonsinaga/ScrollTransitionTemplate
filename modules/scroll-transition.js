@@ -1,4 +1,4 @@
-import MiniTools from "./mini-tools";
+import MiniTools from "./mini-tools.js";
 
 /**
  * Consumed by 'ScrollTransition' class.
