@@ -1,13 +1,12 @@
 export default class MiniTools {
     /**
-     * Keep an array to always has
+     * Keep an array to always has fixed count of members.
      * 
-     * 
-     * @param {*} arr 
-     * @param {*} count 
-     * @param {*} defArr 
-     * @param {*} type 
-     * @returns 
+     * @param {*[]} arr - array to be replaced
+     * @param {number} count - fixed count
+     * @param {[]} defArr - default array
+     * @param {string} type - data type
+     * @returns {*[]} new kept array
      */
     static keepNumberOfArrayMember(
         arr,
