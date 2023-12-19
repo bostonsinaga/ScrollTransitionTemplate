@@ -6,30 +6,35 @@ import MiniTools from "./mini-tools.js";
 class Division {
     /**
      * @param {number} globalFragment - scroll y fragment (range: 0 < value <= 1)
-     * @param {number[]} localFragments - 'globalFragment' fragment (range: 0 < value <= 1)
+     * @param {number[]} localFragments - fragments within the specified 'globalFragment'
+     * @param {number} startFragment - scroll percentage, when the transition effect starts
      * @param {number} maxValue - range: 0 < value <= 1
      * @param {number[]} styleFlags - the flags defined at this class bottom
      * @param {number[]} domsInterval - 2 index of doms as loop counter limit (include, exclude)
-     * @param {boolean} startFromPeak - start from maximum or minimum value
+     * @param {boolean[]} fadeInOut - 'true' is in, 'false' is out (front and back)
      */
     constructor(
         globalFragment = 1,
         localFragments = [1],
+        startFragment = 0,
         maxValue = 1,
         styleFlags = [],
         domsInterval = [0, 0],
-        startFromPeak = false
+        fadeInOut = [false, false]
     ) {
         globalFragment = MiniTools.keepInside100Percent(globalFragment);
+        startFragment = MiniTools.keepInside100Percent(startFragment);
         maxValue = MiniTools.keepInside100Percent(maxValue);
         domsInterval = MiniTools.keepNumberOfArrayMember(domsInterval, 2);
+        fadeInOut = MiniTools.keepNumberOfArrayMember(fadeInOut, 2, [false, false], 'boolean');
 
         this.globalFragment = globalFragment;
         this.localFragments = localFragments;
+        this.startFragment = startFragment;
         this.maxValue = maxValue;
         this.styleFlags = styleFlags;
         this.domsInterval = domsInterval;
-        this.startFromPeak = startFromPeak;
+        this.fadeInOut = fadeInOut;
         this.isDivision = true;
     }
 
@@ -47,11 +52,14 @@ class Division {
 /** The Main Class */
 class ScrollTransition {
     /**
-     * This goes along with the vertical scroll of the window.
-     * You may need to initialize elements style in CSS.
-     * But this follows the 'startFromPeak' value of the 'add' method.
-     * For example, if it 'true' you need to set the first relative
-     * element's style to maximum and vice versa.
+     * This goes along with vertical scroll of the window.
+     * You may need to initialize elements style in main script.
+     * But this follows the 'fadeInOut' value of the 'add' method.
+     * For example, if the front is 'true' you need to set the first relative
+     * element's style to minimum (using sine function) and vice versa.
+     * 
+     * Don't design the input 'doms' in HTML and CSS.
+     * The effect may not work as expected.
      * 
      * Note:
      * Recommended to add more doms and their
@@ -78,11 +86,12 @@ class ScrollTransition {
      * 
      * @param {object} param 
      * @param {object[]} param.doms - html elements
-     * @param {number} param.globalFragment - range: 0 < value <= 1
-     * @param {number[]} param.localFragments 
-     * @param {number} param.maxValue 
+     * @param {number} param.globalFragment - scroll y fragment (range: 0 < value <= 1)
+     * @param {number[]} param.localFragments - fragments within the specified 'globalFragment'
+     * @param {number} param.startFragment - scroll percentage, when the transition effect starts
+     * @param {number} param.maxValue - range: 0 < value <= 1
      * @param {number[]} param.stylesToChange - can be multiple styles at once (use 'Division STYLE FLAGS')
-     * @param {boolean} param.startFromPeak 
+     * @param {boolean[]} param.fadeInOut - 'true' is in, 'false' is out (front and back)
      * @returns {Division} - keep this to able to reduce 'this.doms' (use this as 'drop' parameter)
      */
     add(param) {
@@ -104,14 +113,17 @@ class ScrollTransition {
         if (!isParamUndefined(param.localFragments))
             param.localFragments = [1];
 
+        if (!isParamUndefined(param.startFragment))
+            param.startFragment = 0;
+
         if (!isParamUndefined(param.maxValue))
             param.maxValue = 1;
 
         if (!isParamUndefined(param.stylesToChange))
             param.stylesToChange = [];
 
-        if (!isParamUndefined(param.startFromPeak))
-            param.startFromPeak = false;
+        if (!isParamUndefined(param.fadeInOut))
+            param.fadeInOut = [false, false];
 
         // 'param.doms' must an array
         if ((Array.isArray(param.doms) &&
@@ -124,10 +136,11 @@ class ScrollTransition {
         const newDivision = new Division(
             param.globalFragment,
             param.localFragments,
+            param.startFragment,
             param.maxValue,
             param.stylesToChange,
             [this.doms.length, this.doms.length + param.doms.length],
-            param.startFromPeak
+            param.fadeInOut
         );
 
         this.divisions.push(newDivision);
@@ -207,7 +220,7 @@ class ScrollTransition {
 
         const getIndexInput = (firstIntervalValue, i) => {
             if (firstIntervalValue !== 0) {
-                return i - firstIntervalValue + 1;
+                return i - firstIntervalValue;
             }
             return i;
         };
@@ -296,17 +309,20 @@ class ScrollTransition {
         };
 
         const isIndexNotZero = param.index > 0,
-              isIndexTheLast = param.index === localFragmentsLength - 1;
+              startFragment = param.division.startFragment * Math.PI;
 
-        let nextRadian = getAccumulationFragmentsRadian(param.index),
-            prevRadian = 0;
+        let nextRadian = startFragment + getAccumulationFragmentsRadian(param.index),
+            prevRadian = startFragment;
 
         if (isIndexNotZero) {
-            prevRadian = getAccumulationFragmentsRadian(param.index - 1);
+            prevRadian += getAccumulationFragmentsRadian(param.index - 1);
         }
 
+        if (prevRadian <= 0.001) prevRadian = 0;
+
         if ((isIndexNotZero && scrollRadian <= prevRadian) ||
-            (!isIndexTheLast && scrollRadian > nextRadian)
+            (!isIndexNotZero && scrollRadian < prevRadian) ||
+            (scrollRadian > nextRadian && nextRadian < Math.PI)
         ) {
             return 0;
         }
@@ -316,6 +332,7 @@ class ScrollTransition {
         let product = 0;
 
         if (isIndexNotZero) scrollRadian -= prevRadian;
+        else scrollRadian -= startFragment;
 
         /**
          * 'fr_dupli' < 1 = the wave length decrease
@@ -331,18 +348,21 @@ class ScrollTransition {
             getTrigonInput(fr_dupli)
         ) * param.division.maxValue);
 
+        // front
         if (param.index === 0) {
-            if (param.division.startFromPeak) {
-                product = getCosVal(2);
+            if (param.division.fadeInOut[0]) {
+                product = getSinVal(1);
             }
-            else product = getSinVal(1);
+            else product = getCosVal(2);
         }
-        else if (isIndexTheLast) {
-            if (param.division.startFromPeak) {
+        // back
+        else if (param.index === localFragmentsLength - 1) {
+            if (param.division.fadeInOut[1]) {
                 product = getSinVal(2);
             }
             else product = getSinVal(1);
         }
+        // between
         else product = getSinVal(1);
 
         return product;
