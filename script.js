@@ -1,187 +1,136 @@
+import {Division, ScrollTransition} from './modules/scroll-transition.js';
+const scrollTransition = new ScrollTransition();
+
 //______|
-// DOMs |
+// DOMS |
 //______|
 
-const headerBackground_DOM = document.querySelector('.header-background');
-const footerBackground_DOM = document.querySelector('.footer-background');
+const CONTAINER_DOM = document.querySelector('.CONTAINER');
 
-//___________|
-// FRAGMENTS |
-//___________|
+/** BACKGROUNDS */
 
-/**
- * Keep value between 0 or 1 (by default prevent from zero).
- * 
- * @param {number} value 
- * @param {boolean} preventZero 
- * @returns {number} 0 to 1
- */
-function keepInside100Percent(value, preventZero = true) {
+const background_DOMs = [];
 
-    if (value <= 0) {
-        if (preventZero) value = 0.0001;
-        else value = 0;
+for (let i = 0; i < 2; i++) {
+    const newBg = document.createElement('div');
+
+    newBg.style.width = '100vw';
+    newBg.style.height = '100vh';
+    newBg.style.backgroundSize = 'cover';
+    newBg.style.position = 'fixed';
+    newBg.style.top = '0';
+
+    if (i === 0) {
+        newBg.style.backgroundImage = "url('./img/office.jpg')";
+        newBg.style.opacity = '0.5';
     }
-    else if (value > 1) value = 1;
+    else {
+        newBg.style.backgroundImage = "url('./img/city.jpg')";
+        newBg.style.opacity = '0';
+    }
 
-    return value;
+    background_DOMs.push(newBg);
+    CONTAINER_DOM.appendChild(newBg);
 }
 
-class Division {
-    /**
-     * @param {number} globalFragment - scroll y fragment (range: 0 < value <= 1)
-     * @param {number[]} localFragments - 'globalFragment' fragment (range: 0 < value <= 1)
-     * @param {number} maxValue - range: 0 < value <= 1
-     * @param {boolean} startFromPeak - start from maximum or minimum value
-     */
-    constructor(
-        globalFragment = 1,
-        localFragments = [1],
-        maxValue = 1,
-        startFromPeak = false
-    ) {
-        globalFragment = keepInside100Percent(globalFragment);
-        maxValue = keepInside100Percent(maxValue);
+/** TEXTS */
 
-        this.globalFragment = globalFragment;
-        this.localFragments = localFragments;
-        this.maxValue = maxValue;
-        this.startFromPeak = startFromPeak;
+const text_DOMs = [],
+      content_DOMs = [];
+
+const content_p_strings = [
+    [
+        'Lorem, ipsum dolor sit amet consectetur adipisicing elit. Dolorem, architecto. Eius, quae nulla! Tenetur, reprehenderit molestiae! Quasi molestiae ab maiores sit aliquam dolores numquam repudiandae temporibus culpa? Adipisci, nulla quisquam?',
+        'Lorem ipsum dolor sit amet consectetur, adipisicing elit. Ad iste eligendi tempore asperiores architecto reiciendis assumenda vero atque earum enim dolores quas, ex, natus, ab magnam veritatis modi harum. Accusantium.',
+        'Lorem ipsum dolor sit, amet consectetur adipisicing elit. Et fugiat sit minima ipsum sapiente repudiandae consectetur libero nulla dolorem assumenda praesentium numquam, quae ex. Culpa odit cupiditate dolores facere voluptas!'
+    ],
+    [
+        'Lorem ipsum dolor sit amet consectetur adipisicing elit. Labore quod deserunt doloremque quis magni aut consequuntur porro, ut, temporibus debitis recusandae ex velit blanditiis obcaecati iste delectus aliquam praesentium veniam.',
+        'Lorem ipsum dolor sit amet consectetur, adipisicing elit. Recusandae nam delectus doloribus cupiditate? Ipsum impedit omnis, molestiae hic vel maiores, architecto aliquid commodi itaque, consequatur asperiores quia illo magnam ut.',
+        'Lorem ipsum dolor sit amet consectetur adipisicing elit. Minima ab ipsam, laboriosam inventore nostrum natus autem non modi soluta vitae alias excepturi explicabo ducimus eaque neque error. Corrupti, non perferendis?'
+    ]
+];
+
+for (let i = 0; i < 2; i++) {
+    const newText = document.createElement('div');
+
+    newText.style.width = '100vw';
+    newText.style.height = '100vh';
+    newText.style.display = 'flex';
+    newText.style.position = 'fixed';
+    newText.style.flexDirection = 'column';
+    newText.style.alignItems = 'center';
+    newText.style.justifyContent = 'center';
+    newText.style.color = 'white';
+
+    CONTAINER_DOM.appendChild(newText);
+    text_DOMs.push(newText);
+    content_DOMs.push([]);
+
+    for (let j = 0; j < 3; j++) {
+        const newContent = document.createElement('div');
+
+        newContent.style.padding = '100px';
+        newContent.style.position = 'fixed';
+        newContent.style.display = 'flex';
+        newContent.style.flexDirection = 'column';
+        newContent.style.fontSize = '32px';
+
+        if (i === 0 && j === 0) {
+            newContent.style.opacity = '1';
+            newContent.style.scale = '1';
+        }
+        else {
+            newContent.style.opacity = '0';
+            newContent.style.scale = '0';
+        }
+
+        /** The Contents */
+
+        const h5 = document.createElement('h5');
+        h5.innerHTML = `TEXT ${i} CONTENT ${j}`;
+        h5.style.fontSize = 'calc(100% * 2)';
+
+        const p = document.createElement('p');
+        p.innerHTML = content_p_strings[i][j];
+        p.style.marginTop = '20px';
+        p.style.fontSize = 'inherit';
+
+        // append elements
+        newContent.appendChild(h5);
+        newContent.appendChild(p);
+        newText.appendChild(newContent);
+        content_DOMs[i].push(newContent);
     }
-};
-
-// ___________________|
-// DOMs Configuration |
-// ___________________|
-
-/**
- * Note.
- * The CSS set all element inside 'CONTAINER' DOM
- * with 0 opacity. So the opacity of first order elements
- * need to initialized if 'division.startFromPeak' is true.
- */
-
-const bg_division = new Division(1, [0.5, 0.5], 0.5, true);
-headerBackground_DOM.style.opacity = 0.5;
-
-//________|
-// EVENTS |
-//________|
-
-// 'false' mean portrait
-let isLandscape = true;
-
-function updateOrientation() {
-    isLandscape = window.innerWidth / window.innerHeight >= 1 ? true : false;
 }
 
-updateOrientation();
-window.addEventListener('resize', updateOrientation);
+//_______|
+// EVENT |
+//_______|
 
-/**
- * Using Trigonometry
- * 
- * @param {number} scrollPercentage 
- * @param {Division} division 
- * @param {number} index 
- */
-function getPeakValley(
-    scrollPercentage,
-    division,
-    index,
-    returnAsString = true
-) {
-    const getScrollFragment = (i) =>
-        division.localFragments[i] * division.globalFragment;
-
-    const fragment = getScrollFragment(index);
-
-    // scroll value (0 - 1) to radian (0 - PI)
-    let scrollRadian = Math.PI * scrollPercentage;
-
-    /**
-     * ZERO OR POINTS
-     * Test whether 'scrollRadian' computed in correct fragments sequence.
-     * If not this will directly return zero.
-     */
-
-    const getAccumulationFragmentsRadian = (maxIndex) => {
-        let accuVal = 0;
-
-        for (let i = 0; i < division.localFragments.length; i++) {
-            if (i <= maxIndex) {
-                accuVal += getScrollFragment(i) * Math.PI;
-            }
-            else break;
-        }
-
-        return accuVal;
-    };
-
-    let nextRadian = getAccumulationFragmentsRadian(index),
-        prevRadian = 0;
-
-    if (index > 0) {
-        prevRadian = getAccumulationFragmentsRadian(index - 1);
-    }
-
-    if ((index > 0 && scrollRadian <= prevRadian) ||
-        scrollRadian > nextRadian
-    ) {
-        if (returnAsString) return '0';
-        return 0;
-    }
-
-    /** PEAK AND VALLEY */
-
-    let product = 0;
-
-    if (index > 0) scrollRadian -= prevRadian;
-
-    // the more 'fr_dupli', the more 
-
-    /**
-     * 'fr_dupli' < 1 = the wave length decrease
-     * 'fr_dupli' > 1 = the wave length increase
-     */
-    const getTrigonInput = (fr_dupli) => scrollRadian / (fragment * fr_dupli);
-
-    const getSinVal = (fr_dupli) => Math.abs(Math.sin(
-        getTrigonInput(fr_dupli)
-    ) * division.maxValue);
-
-    const getCosVal = (fr_dupli) => Math.abs(Math.cos(
-        getTrigonInput(fr_dupli)
-    ) * division.maxValue);
-
-    if (index === 0) {
-        if (division.startFromPeak) {
-            product = getCosVal(2);
-        }
-        else product = getSinVal(1);
-    }
-    else if (index === division.localFragments.length - 1) {
-        if (division.startFromPeak) {
-            product = getSinVal(2);
-        }
-        else product = getSinVal(1);
-    }
-    else product = getSinVal(1);
-
-    if (returnAsString) return `${product}`;
-    return product;
-}
-
-/** SCROLL EVENT */
-
-window.addEventListener('scroll', () => {
-
-    /** SCROLL Y */
-
-    const maxScrollY = document.body.scrollHeight - window.innerHeight,
-          scrollYPercentage = window.scrollY / maxScrollY;
-
-    headerBackground_DOM.style.opacity = getPeakValley(scrollYPercentage, bg_division, 0);
-    footerBackground_DOM.style.opacity = getPeakValley(scrollYPercentage, bg_division, 1);
+// backgrounds
+scrollTransition.add({
+    doms: background_DOMs,
+    globalFragment: 1,
+    localFragments: [0.5, 0.5],
+    maxValue: 0.5,
+    stylesToChange: [Division.OPACITY],
+    fadeInOut: [false, true]
 });
+
+// texts and contents
+for (let i = 0; i < text_DOMs.length; i++) {
+    scrollTransition.add({
+        doms: content_DOMs[i],
+        globalFragment: 0.5,
+        localFragments: [0.3, 0.4, 0.3],
+        startFragment: i === 0 ? 0 : 0.5,
+        maxValue: 1,
+        stylesToChange: [Division.OPACITY, Division.SCALE],
+        fadeInOut: i === 0 ? [false, false] : [true, true]
+    });
+}
+
+// play the magic
+scrollTransition.startEvent();
 
